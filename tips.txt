@@ -1,0 +1,20 @@
+
+########
+[ venv ]
+########
+
+- To enter the venv:
+source venv/bin/activate
+	- Then to install packages: pip install PKG
+- To exit the venv:
+deactivate
+
+- To list requirements:
+pip freeze > requirements.txt
+
+##############
+[ unit tests ]
+##############
+
+- To run unittests:
+python -m unittest test_gen_sim_data
