@@ -26,11 +26,9 @@ def hello_world(n_constant: int,
     factors_up_down = replace_any_nonpositive_vals(factors_up_down)
     # Sort the factors by decreasing order
     factors_up_down.sort(reverse=True)
-    print(factors_up_down)
 
     # Open the output file
     out_dir = os.path.dirname(out_file)
-    print(out_dir)
     os.makedirs(out_dir, exist_ok = True)
     out_f = open(out_file, 'w')
 
@@ -41,7 +39,6 @@ def hello_world(n_constant: int,
     header = "sample\t" + "\t".join(up_headers) + "\t" +\
              "\t".join(down_headers) + "\t" +\
              "\t".join(no_change_headers) + "\n"
-    print(header)
     out_f.write(header)
 
     # The total number of genes
@@ -52,17 +49,35 @@ def hello_world(n_constant: int,
     # up/down/no-change
     all_gene_factors = factors_up_down +\
                        [-1*x for x in factors_up_down] +\
-                       [1 for _ in range(n_constant)] # unchanging genes
+                       [0 for _ in range(n_constant)] # unchanging genes have lfc = 0
     # each gene_id is like "u1", "50", "l2", "n560", etc.
     gene_ids = up_headers + down_headers + no_change_headers
-    id_medtpm_factor_t_l = zip(gene_ids, gene_median_tpms_l, all_gene_factors)
+    id_medtpm_factor_t_l = list(zip(gene_ids, gene_median_tpms_l, all_gene_factors))
     pprint.pprint(list(id_medtpm_factor_t_l))
 
-    # Go through each sample and write it out
+    # Go through each reference sample (i.e., using the gene's median tpm with
+    # no adjusted changed), and write it out
+    #  out
     for s_i in range(n_each_class):
+        out_f.write(f"ref_samp_{s_i}\t")
         # Go through each of the genes; here, we do not use the factors
+        vals_l = []
         for _, medtpm, _ in id_medtpm_factor_t_l:
-            tpm = np.random.normal(loc=median_LFC, scale=median_LFC/10, size=n_up_down)
+            tpm = return_pos_gaussian_samp_val(medtpm, medtpm / 5)
+            vals_l.append(f'{tpm:.4f}')
+        out_f.write("\t".join(vals_l) + "\n")
+
+    # Go through each changed sample (i.e., using the gene's median tpm but
+    # adjust up or down if it's an "u" or "d" gene
+    for s_i in range(n_each_class):
+        out_f.write(f"changed_samp_{s_i}\t")
+        # Go through each of the genes and the log2 factor by which the
+        # gene should be systematically up/down-regulated
+        vals_l = []
+        for _, medtpm, lfc in id_medtpm_factor_t_l:
+            tpm = return_pos_gaussian_samp_val(lfc + medtpm, medtpm / 5)
+            vals_l.append(f'{tpm:.4f}')
+        out_f.write("\t".join(vals_l) + "\n")
 
     out_f.close()
     print(out_file)
@@ -87,9 +102,6 @@ def replace_any_nonpositive_vals(vals: [float]) -> [float]:
     pprint.pprint(vcp)
     return list(vcp)
 
-
-hello_world(1000, 100, 2., "/Users/pfreese/Downloads/outt.pycharm.txt")
-
 def return_pos_gaussian_samp_val(mu: float,
                                  sigma:float):
     val = np.random.normal(loc=mu, scale=sigma)
@@ -109,4 +121,6 @@ def test():
     #print(np.where(neg_vals)[0])
 
 #test()
+
+hello_world(1000, 100, 2, "/Users/pfreese/Downloads/outt.pycharm.txt")
 
