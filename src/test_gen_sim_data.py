@@ -10,7 +10,7 @@ class TestReplacement(unittest.TestCase):
         ## Test where one negative number is below 0; replace it with ~the
         ## average of the other
         vals = [1, 2, -5.]
-        exp_pos_vals = [1.0, 2.0, 1.5684]
+        exp_pos_vals = [1.0, 2.0, 1.50684]
         vals_w_replace = gen_sim_data.replace_any_nonpositive_vals(vals)
         # Test that all are approximately as expected
         [self.assertAlmostEqual(vals_w_replace[i], exp_pos_vals[i], places=4) for
@@ -19,7 +19,7 @@ class TestReplacement(unittest.TestCase):
     def test_replace_non_nonpositive_vals(self):
         ## Test where all are positive and therefore non are replaced
         vals = [1, 2, 5]
-        self.assertEqual(vals, gen_sim_data.replace_any_nonpositive_vals(vals))
+        self.assertListEqual(vals, gen_sim_data.replace_any_nonpositive_vals(vals))
 
 class TestPosGaussianSample(unittest.TestCase):
 
@@ -30,6 +30,7 @@ class TestPosGaussianSample(unittest.TestCase):
         self.assertAlmostEqual(val, 99.58324, places=4)
 
         # A negative value around -100 returned as a positive value close to 0
+        # after negative exponentiation
         val = gen_sim_data.return_pos_gaussian_samp_val(-100, 1)
         self.assertAlmostEqual(val, 4.514e-07, places=9)
 
